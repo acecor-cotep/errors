@@ -1,5 +1,5 @@
 {
-  "name": "errors",
+  "name": "@cotep/errors",
   "version": "1.0.0",
   "description": "Handle errors properly on your program. You have a proper stacktrace if you do it right!",
   "main": "./lib/src/Errors.js",
@@ -7,7 +7,8 @@
     "build": "grunt default",
     "version": "npm run format && git add -A src",
     "postversion": "git push && git push --tags",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "runExample": "npm run build && cd ./lib && node example/main.js"
   },
   "keywords": [
     "node.js",

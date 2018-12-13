@@ -9,30 +9,30 @@
 import colors from 'colors';
 
 /**
- * Return the name of the function that call this function
- * IT'S A HACK
+ * Create a monoline from an array which is usefull when you have a line that is too long
  */
-function getFunctionName(numberFuncToGoBack = 1) {
-  const err = new Error('tmpErr');
+function monoline(parts) {
+  return parts.reduce((str, x) => `${str}${x}`, '');
+}
 
-  const splitted = err.stack
-    .split('\n');
-
-  // If we cannot succeed to find the good function name, return the whole data
-  if (numberFuncToGoBack >= splitted.length) {
-    return err.stack;
-  }
-
-  const trimmed = splitted[numberFuncToGoBack]
-    .trim(' ');
-
-  // If we cannot succeed to find the good function name, return the whole data
-  if (!trimmed.length) return err.stack;
-
-  return trimmed.split(' ')[1];
+/**
+ * Convert a string to JSON
+ * If he cannot parse it, return false
+ * @param {String} dataString
+ */
+function convertStringToJSON(dataString) {
+  return (() => {
+    try {
+      return JSON.parse(dataString);
+    } catch (_) {
+      return false;
+    }
+  })();
 }
 
 const NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_CLASSIC = 3;
+
+const NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_HANDLE_STACK_TRACE = 3;
 
 /**
  * Handles errors in application. It contains Error codes and functions to manage them
@@ -43,7 +43,7 @@ export default class Errors {
    * @param {String} functionName - where the error happened
    * @param {String} supString - Supplement infos about the error
    */
-  constructor(errCode, supString, functionName = getFunctionName(NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_CLASSIC)) {
+  constructor(errCode, supString, functionName = Errors.getFunctionName(NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_CLASSIC)) {
     this.stringError = '';
     this.errorCode = 'E0000';
     this.happened = '';
@@ -57,6 +57,30 @@ export default class Errors {
     if (supString) this.stringError = supString;
 
     this.dad = false;
+  }
+
+  /**
+   * Return the name of the function that call this function
+   * IT'S A HACK
+   */
+  static getFunctionName(numberFuncToGoBack = 1) {
+    const err = new Error('tmpErr');
+
+    const splitted = err.stack
+      .split('\n');
+
+    // If we cannot succeed to find the good function name, return the whole data
+    if (numberFuncToGoBack >= splitted.length) {
+      return err.stack;
+    }
+
+    const trimmed = splitted[numberFuncToGoBack]
+      .trim(' ');
+
+    // If we cannot succeed to find the good function name, return the whole data
+    if (!trimmed.length) return err.stack;
+
+    return trimmed.split(' ')[1];
   }
 
   /**
@@ -100,7 +124,7 @@ export default class Errors {
    * @param {String} str
    */
   static deserialize(str) {
-    const obj = Utils.convertStringToJSON(str);
+    const obj = convertStringToJSON(str);
 
     const constructError = (ptr) => {
       const newErrorObj = new Errors();
@@ -121,11 +145,10 @@ export default class Errors {
   }
 
   /**
-   * Enum that contains errorCodes
-   * @return {{EX: number}}
+   * Initialize the codes
    */
-  static get Code() {
-    return {
+  static initCodes() {
+    this.codes = {
       // Special error that say we just want to add some extra stack trace data (but without using new error code)
       ESTACKTRACE: 'Stack Trace',
 
@@ -135,6 +158,32 @@ export default class Errors {
       // Unexpected error
       EUNEXPECTED: 'Unexpected Error',
     };
+  }
+
+  /**
+   * Declare codes to the Errors class
+   */
+  static declareCodes(conf) {
+    if (!this.codes) {
+      Errors.initCodes();
+    }
+
+    this.codes = {
+      ...this.codes,
+      ...conf,
+    };
+  }
+
+  /**
+   * Enum that contains errorCodes
+   * @return {{EX: number}}
+   */
+  static get Code() {
+    if (!this.codes) {
+      Errors.initCodes();
+    }
+
+    return this.codes;
   }
 
   /**
@@ -154,7 +203,7 @@ export default class Errors {
    * @param {Boolean} logIt
    * @param {?Number} type
    */
-  static handleStackTraceAdd(err, errToAdd, funcName = getFunctionName(NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_HANDLE_STACK_TRACE)) {
+  static handleStackTraceAdd(err, errToAdd, funcName = Errors.getFunctionName(NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_HANDLE_STACK_TRACE)) {
     if (!Errors.staticIsAnError(err)) return new Errors('EUNEXPECTED', String(err.stack || err), funcName);
 
     return err.stackTrace(errToAdd);
@@ -241,7 +290,7 @@ export default class Errors {
 
     // Create our own display
     if (isFirst || this.errorCode !== 'ESTACKTRACE') {
-      strsParts.push(Utils.monoline([
+      strsParts.push(monoline([
         '--> Error['.red,
         `${this.errorCode}`.yellow,
         ']: ['.red,
@@ -265,7 +314,7 @@ export default class Errors {
 
       let spacesOffset = ' ';
 
-      finalArrayToDisplay.push(Utils.monoline([
+      finalArrayToDisplay.push(monoline([
         'TRACE: '.bold.underline.red,
         '--------------------------------------------------------------'.bold.red,
         '\n',
@@ -280,12 +329,12 @@ export default class Errors {
         x.forEach(y => finalArrayToDisplay.push(`| ${spacesOffset}${y}`));
       });
 
-      finalArrayToDisplay.push(Utils.monoline([
+      finalArrayToDisplay.push(monoline([
         '---------------------------------------------------------------------'.bold.red,
         '\n',
       ]));
 
-      return Utils.monoline(finalArrayToDisplay);
+      return monoline(finalArrayToDisplay);
     }
 
     // We do not have to handle the display just return our display and our dad display

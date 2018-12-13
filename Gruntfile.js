@@ -1,6 +1,6 @@
 "use strict";
 
-module.exports = function (grunt) {
+module.exports = function(grunt) {
   require('load-grunt-tasks')(grunt);
 
   grunt.initConfig({
@@ -10,7 +10,7 @@ module.exports = function (grunt) {
       },
       files: {
         expand: true,
-        src: ['src/**/*.es6', 'test/**/*.es6'],
+        src: ['src/**/*.es6', 'example/**/*.es6'],
         ext: '.js',
         dest: './lib/',
       },
