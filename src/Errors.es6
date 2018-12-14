@@ -35,6 +35,11 @@ const NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_CLASSIC = 3;
 const NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_HANDLE_STACK_TRACE = 3;
 
 /**
+ * Holds the errors codes
+ */
+let codesStorage = false;
+
+/**
  * Handles errors in application. It contains Error codes and functions to manage them
  */
 export default class Errors {
@@ -145,10 +150,10 @@ export default class Errors {
   }
 
   /**
-   * Initialize the codes
+   * The default codes of the Error class
    */
-  static initCodes() {
-    this.codes = {
+  static get DEFAULT_CODES() {
+    return {
       // Special error that say we just want to add some extra stack trace data (but without using new error code)
       ESTACKTRACE: 'Stack Trace',
 
@@ -164,26 +169,25 @@ export default class Errors {
    * Declare codes to the Errors class
    */
   static declareCodes(conf) {
-    if (!this.codes) {
-      Errors.initCodes();
+    if (!codesStorage) {
+      codesStorage = Errors.DEFAULT_CODES;
     }
 
-    this.codes = {
-      ...this.codes,
+    codesStorage = {
+      ...codesStorage,
       ...conf,
     };
   }
 
   /**
-   * Enum that contains errorCodes
-   * @return {{EX: number}}
+   * Returns the known codes
    */
-  static get Code() {
-    if (!this.codes) {
-      Errors.initCodes();
+  static get codes() {
+    if (!codesStorage) {
+      codesStorage = Errors.DEFAULT_CODES;
     }
 
-    return this.codes;
+    return codesStorage;
   }
 
   /**
@@ -226,7 +230,7 @@ export default class Errors {
    * @return {string}
    */
   getMeaning() {
-    return Errors.Code[this.errorCode] || '';
+    return Errors.codes[this.errorCode] || '';
   }
 
   /**
@@ -271,6 +275,14 @@ export default class Errors {
    */
   displayColoredError() {
     console.error(this.getColoredErrorString(true));
+  }
+
+  /**
+   * Display the recorded error
+   */
+  displayError() {
+    console.error(String(this.getErrorString())
+      .red.bold);
   }
 
   /**
@@ -350,22 +362,6 @@ export default class Errors {
     }
 
     return toRet;
-  }
-
-  /**
-   * Display the recorded error
-   */
-  displayError() {
-    console.error(`${this.getErrorString()} - 1`.red.bold);
-  }
-
-  /**
-   * Say if the parameter is an instance of the class Error
-   * @param {Object} unknown
-   * @return {Boolean}
-   */
-  isAnError(unknown) {
-    return unknown instanceof Errors;
   }
 
   /**
