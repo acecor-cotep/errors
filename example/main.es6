@@ -15,8 +15,12 @@ function wrapper(func) {
   }
 }
 
+/**
+ * Functions we need to generate the error case
+ */
+
 function b() {
-  throw new Errors('E0001');
+  throw new Errors('E8000');
 }
 
 function a() {
@@ -28,6 +32,12 @@ function unexpectedError() {
 
   variable.access.nested = 5;
 }
+
+// -----
+
+/**
+ * Catch process exception and rejection
+ */
 
 process.on('unhandledRejection', (reason) => {
   const err = new Errors('GENERAL_CATCH', `${String(reason)}`);
@@ -41,12 +51,28 @@ process.on('uncaughtException', (reason) => {
   err.displayColoredError();
 });
 
+// -----
+
+/**
+ * Declare the errors
+ */
+
+Errors.declareCodes({
+  E7000: 'Unknown user',
+  E8000: 'Unknown material',
+  E9000: 'API error',
+});
+
+/**
+ * Launch the errors cases
+ */
+
 // Display the basic error
 
 console.log('\n\n> #1 Display a basic error\n');
 
 try {
-  throw new Errors('E0001');
+  throw new Errors('E7000');
 } catch (e) {
   e.displayColoredError();
 }
