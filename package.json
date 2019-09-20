@@ -1,6 +1,6 @@
 {
   "name": "@cotep/errors",
-  "version": "2.0.0",
+  "version": "2.3.0",
   "description": "Handle errors properly on your program. You have a proper stacktrace if you do it right!",
   "main": "./lib/src/Errors.js",
   "scripts": {
