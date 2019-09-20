@@ -79,19 +79,19 @@ export default class Errors {
   static getFunctionName(numberFuncToGoBack: number = 1): string {
     const err = new Error('tmpErr');
 
-    const splitted = err.stack
+    const splitted = (err.stack || '')
       .split('\n');
 
     // If we cannot succeed to find the good function name, return the whole data
     if (numberFuncToGoBack >= splitted.length) {
-      return err.stack;
+      return err.stack || '';
     }
 
     const trimmed = splitted[numberFuncToGoBack]
       .trim();
 
     // If we cannot succeed to find the good function name, return the whole data
-    if (!trimmed.length) return err.stack;
+    if (!trimmed.length) return err.stack || '';
 
     return trimmed.split(' ')[1];
   }
@@ -292,8 +292,8 @@ export default class Errors {
    * WARNING THIS FUNCTION IS RECURSIVE
    */
   getColoredErrorString(isFirst: boolean = true): any {
-    const strsParts = [];
-    let dadsDisplay = [];
+    const strsParts: string[] = [];
+    let dadsDisplay: any[] = [];
 
     // Get the dad display
     if (this.dad) {
@@ -304,17 +304,17 @@ export default class Errors {
     // Create our own display
     if (isFirst || this.errorCode !== 'ESTACKTRACE') {
       strsParts.push(monoline([
-        '--> Error['.red,
-        `${this.errorCode}`.yellow,
-        ']: ['.red,
-        `${this.getMeaning()}`.yellow,
-        ']\n'.red,
+        colors.red('--> Error['),
+        colors.yellow(`${this.errorCode}`),
+        colors.red(']: ['),
+        colors.yellow(`${this.getMeaning()}`),
+        colors.red(']\n'),
       ]));
     }
 
-    if (this.stringError) strsParts.push(`More infos: [${this.stringError}]\n`.blue);
+    if (this.stringError) colors.blue(strsParts.push(`More infos: [${this.stringError}]\n`));
 
-    if (this.happened) strsParts.push(`Happened at: [${this.happened}]\n`.grey);
+    if (this.happened) colors.grey(strsParts.push(`Happened at: [${this.happened}]\n`));
 
     // If we are the first called function, it means we have to actually handle the display
     if (isFirst) {
@@ -323,7 +323,7 @@ export default class Errors {
       // [dad, dad, dad, dad] which are the others traces, with the last dad the highest level trace
 
       // Starting with the highest dad we start the display
-      const finalArrayToDisplay = [];
+      const finalArrayToDisplay: string[] = [];
 
       let spacesOffset = ' ';
 
@@ -351,7 +351,7 @@ export default class Errors {
     }
 
     // We do not have to handle the display just return our display and our dad display
-    let toRet = [];
+    let toRet: string[][] = [];
 
     if (strsParts.length) toRet.push(strsParts);
 

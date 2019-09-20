@@ -1,3 +1,5 @@
+const colors = require('colors/safe');
+
 import Errors from '../src/Errors';
 
 const NUMBER_OF_LEVEL_TO_GO_BACK_PROMISE_PATTERN = 3;
@@ -30,6 +32,7 @@ function a() {
 function unexpectedError() {
   const variable = 'toto';
 
+  // @ts-ignore
   variable.access.nested = 5;
 }
 
