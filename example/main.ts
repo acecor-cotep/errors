@@ -1,13 +1,13 @@
-import Errors from '../src/Errors.js';
+import Errors from '../src/Errors';
 
 const NUMBER_OF_LEVEL_TO_GO_BACK_PROMISE_PATTERN = 3;
 
 /**
  * We wrap the function call to add a stack trace to the error
  */
-function wrapper(func) {
+function wrapper(func: Function): void {
   try {
-    return func.call();
+    return func.call(this);
   } catch (err) {
     throw !Errors.staticIsAnError(err) ?
       new Errors('EUNEXPECTED', String((err && err.stack) || err), Errors.getFunctionName()) :

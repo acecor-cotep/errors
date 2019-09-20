@@ -6,13 +6,13 @@
  * This class handle errors in the app
  */
 
-import colors from 'colors';
+const colors = require('colors/safe');
 
 /**
  * Create a monoline from an array which is usefull when you have a line that is too long
  */
-function monoline(parts) {
-  return parts.reduce((str, x) => `${str}${x}`, '');
+function monoline(parts: any[]): string {
+  return parts.reduce((str: string, x: string) => `${str}${x}`, '');
 }
 
 /**
@@ -20,7 +20,7 @@ function monoline(parts) {
  * If he cannot parse it, return false
  * @param {String} dataString
  */
-function convertStringToJSON(dataString) {
+function convertStringToJSON(dataString: string): Object | false {
   return (() => {
     try {
       return JSON.parse(dataString);
@@ -30,25 +30,33 @@ function convertStringToJSON(dataString) {
   })();
 }
 
-const NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_CLASSIC = 3;
+const NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_CLASSIC: number = 3;
 
-const NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_HANDLE_STACK_TRACE = 3;
+const NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_HANDLE_STACK_TRACE: number = 3;
 
 /**
  * Holds the errors codes
  */
-let codesStorage = false;
+let codesStorage: Object | false = false;
 
 /**
  * Handles errors in application. It contains Error codes and functions to manage them
  */
 export default class Errors {
+  protected stringError: string;
+
+  protected errorCode: string;
+
+  protected happened: string;
+
+  protected dad: Errors | false;
+
   /**
-   * @param {String} errCode - the key associated to the error
-   * @param {String} functionName - where the error happened
-   * @param {String} supString - Supplement infos about the error
+   * @param errCode - the key associated to the error
+   * @param functionName - where the error happened
+   * @param supString - Supplement infos about the error
    */
-  constructor(errCode, supString, functionName = Errors.getFunctionName(NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_CLASSIC)) {
+  constructor(errCode?: string, supString?: string, functionName: string = Errors.getFunctionName(NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_CLASSIC)) {
     this.stringError = '';
     this.errorCode = 'E0000';
     this.happened = '';
@@ -68,7 +76,7 @@ export default class Errors {
    * Return the name of the function that call this function
    * IT'S A HACK
    */
-  static getFunctionName(numberFuncToGoBack = 1) {
+  static getFunctionName(numberFuncToGoBack: number = 1): string {
     const err = new Error('tmpErr');
 
     const splitted = err.stack
@@ -80,7 +88,7 @@ export default class Errors {
     }
 
     const trimmed = splitted[numberFuncToGoBack]
-      .trim(' ');
+      .trim();
 
     // If we cannot succeed to find the good function name, return the whole data
     if (!trimmed.length) return err.stack;
@@ -90,9 +98,9 @@ export default class Errors {
 
   /**
    * We call this function to add some trace to the error
-   * @param {Errors} error - new Error that will help the trace
+   * @param error - new Error that will help the trace
    */
-  stackTrace(error) {
+  stackTrace(error: Errors): Errors {
     error.setDad(this);
 
     return error;
@@ -100,9 +108,9 @@ export default class Errors {
 
   /**
    * Set a dad to the error (used by stack trace to create a stack trace using simple errors)
-   * @param {Errors} error
+   * @param error
    */
-  setDad(error) {
+  setDad(error: Errors): void {
     this.dad = error;
   }
 
@@ -112,7 +120,7 @@ export default class Errors {
    *
    * WARNING RECURSIVE FUNCTION
    */
-  serialize(_stringify = true) {
+  serialize(_stringify: boolean = true): string | Object {
     const serialize = {
       stringError: this.stringError,
       errorCode: this.errorCode,
@@ -128,7 +136,7 @@ export default class Errors {
    * If the string is not a serialized error, create a new error with the string as new error infos
    * @param {String} str
    */
-  static deserialize(str) {
+  static deserialize(str: string): Object {
     const obj = convertStringToJSON(str);
 
     const constructError = (ptr) => {
@@ -152,7 +160,7 @@ export default class Errors {
   /**
    * The default codes of the Error class
    */
-  static get DEFAULT_CODES() {
+  static get DEFAULT_CODES(): Object {
     return {
       // Special error that say we just want to add some extra stack trace data (but without using new error code)
       ESTACKTRACE: 'Stack Trace',
@@ -168,7 +176,7 @@ export default class Errors {
   /**
    * Declare codes to the Errors class
    */
-  static declareCodes(conf) {
+  static declareCodes(conf: Object): void {
     if (!codesStorage) {
       codesStorage = Errors.DEFAULT_CODES;
     }
@@ -182,7 +190,7 @@ export default class Errors {
   /**
    * Returns the known codes
    */
-  static get codes() {
+  static get codes(): Object {
     if (!codesStorage) {
       codesStorage = Errors.DEFAULT_CODES;
     }
@@ -192,32 +200,26 @@ export default class Errors {
 
   /**
    * Shortcut to handle an add to stack trace (special add --> ESTACKTRACE type)
-   * @param {String} funcName
-   * @param {?(Errors|Error)} err
    */
-  static shortcutStackTraceSpecial(err, funcName) {
+  static shortcutStackTraceSpecial(err: Errors | Error, funcName: string): Errors {
     return Errors.handleStackTraceAdd(err, new Errors('ESTACKTRACE', '', funcName), funcName);
   }
 
   /**
    * Add an error into a stack trace, handle the fact of unexpected errors
-   * @param {?(Errors|Error)} err
-   * @param {String} funcName
-   * @param {Errors} errToAdd
-   * @param {Boolean} logIt
-   * @param {?Number} type
    */
-  static handleStackTraceAdd(err, errToAdd, funcName = Errors.getFunctionName(NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_HANDLE_STACK_TRACE)) {
-    if (!Errors.staticIsAnError(err)) return new Errors('EUNEXPECTED', String(err.stack || err), funcName);
+  static handleStackTraceAdd(err: Errors | Error, errToAdd: Errors, funcName: string = Errors.getFunctionName(NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_HANDLE_STACK_TRACE)) {
+    if (!Errors.staticIsAnError(err)) {
+      return new Errors('EUNEXPECTED', String(err.stack || err), funcName);
+    }
 
     return err.stackTrace(errToAdd);
   }
 
   /**
    * Check if the errCode is a part of the stackTrace errors
-   * @param {String} errCode
    */
-  checkErrorOccur(errCode) {
+  checkErrorOccur(errCode: string): boolean {
     if (this.errorCode === errCode) return true;
 
     if (!this.dad) return false;
@@ -229,14 +231,14 @@ export default class Errors {
    * Get the description associated to the recorded error
    * @return {string}
    */
-  getMeaning() {
+  getMeaning(): string {
     return Errors.codes[this.errorCode] || '';
   }
 
   /**
    * @override
    */
-  toString() {
+  toString(): string {
     return this.getErrorString();
   }
 
@@ -245,8 +247,9 @@ export default class Errors {
    * @param {?Boolean} _dad
    * @return {string}
    */
-  getErrorString(_dad = false) {
-    const json = {};
+  getErrorString(_dad: boolean = false): string {
+    const json: any = {};
+
     let avoid = true;
 
     if (this.errorCode !== 'ESTACKTRACE' || (!_dad && this.errorCode === 'ESTACKTRACE')) {
@@ -273,24 +276,22 @@ export default class Errors {
   /**
    * Display the colored error
    */
-  displayColoredError() {
+  displayColoredError(): void {
     console.error(this.getColoredErrorString(true));
   }
 
   /**
    * Display the recorded error
    */
-  displayError() {
-    console.error(String(this.getErrorString())
-      .red.bold);
+  displayError(): void {
+    console.error(colors.bold(colors.red(String(this.getErrorString()))));
   }
 
   /**
    * display the error into the console
    * WARNING THIS FUNCTION IS RECURSIVE
-   * @param {Boolean} isFirst
    */
-  getColoredErrorString(isFirst = true) {
+  getColoredErrorString(isFirst: boolean = true): any {
     const strsParts = [];
     let dadsDisplay = [];
 
@@ -327,8 +328,8 @@ export default class Errors {
       let spacesOffset = ' ';
 
       finalArrayToDisplay.push(monoline([
-        'TRACE: '.bold.underline.red,
-        '--------------------------------------------------------------'.bold.red,
+        colors.red(colors.underline(colors.bold('TRACE: '))),
+        colors.red(colors.bold('--------------------------------------------------------------')),
         '\n',
       ]));
 
@@ -342,7 +343,7 @@ export default class Errors {
       });
 
       finalArrayToDisplay.push(monoline([
-        '---------------------------------------------------------------------'.bold.red,
+        colors.bold(colors.red('---------------------------------------------------------------------')),
         '\n',
       ]));
 
@@ -366,34 +367,30 @@ export default class Errors {
 
   /**
    * Say if the parameter is an instance of the class Error
-   * @param {Object} unknown
-   * @return {Boolean}
    */
-  static staticIsAnError(unknown) {
+  static staticIsAnError(unknown: any): unknown is Errors {
     return unknown instanceof Errors;
   }
 
   /**
    * Set a string to specify more the error
-   * @param {string} error - description of the error
    */
-  setString(error) {
+  setString(error: string): void {
     this.stringError = error;
   }
 
   /**
    * Set the error code
-   * @param {String} errCode - key that refer to an error
    */
-  setErrorCode(errCode) {
+  setErrorCode(errCode: string): void {
     this.errorCode = errCode;
   }
 
   /**
    * Get the string associated to the last code in stack
    */
-  getLastStringInStack() {
-    let ptr = this;
+  getLastStringInStack(): string {
+    let ptr: Errors = this;
 
     while (ptr.dad) ptr = ptr.dad;
 
@@ -405,8 +402,8 @@ export default class Errors {
    * The last in the stack
    * @return {String}
    */
-  getLastErrorCodeInStack() {
-    let ptr = this;
+  getLastErrorCodeInStack(): string {
+    let ptr: Errors = this;
 
     while (ptr.dad) ptr = ptr.dad;
 
@@ -418,8 +415,8 @@ export default class Errors {
    * The last in the stack
    * @return {String}
    */
-  getLastErrorInStack() {
-    let ptr = this;
+  getLastErrorInStack(): Errors {
+    let ptr: Errors = this;
 
     while (ptr.dad) ptr = ptr.dad;
 
@@ -430,7 +427,7 @@ export default class Errors {
    * Get the error code (key that refer to the error)
    * @return {String}
    */
-  getErrorCode() {
+  getErrorCode(): string {
     return this.errorCode;
   }
 }
