@@ -76,7 +76,7 @@ export default class Errors {
    * Return the name of the function that call this function
    * IT'S A HACK
    */
-  static getFunctionName(numberFuncToGoBack: number = 1): string {
+  public static getFunctionName(numberFuncToGoBack: number = 1): string {
     const err = new Error('tmpErr');
 
     const splitted = (err.stack || '')
@@ -100,7 +100,7 @@ export default class Errors {
    * We call this function to add some trace to the error
    * @param error - new Error that will help the trace
    */
-  stackTrace(error: Errors): Errors {
+  public stackTrace(error: Errors): Errors {
     error.setDad(this);
 
     return error;
@@ -110,7 +110,7 @@ export default class Errors {
    * Set a dad to the error (used by stack trace to create a stack trace using simple errors)
    * @param error
    */
-  setDad(error: Errors): void {
+  public setDad(error: Errors): void {
     this.dad = error;
   }
 
@@ -120,7 +120,7 @@ export default class Errors {
    *
    * WARNING RECURSIVE FUNCTION
    */
-  serialize(_stringify: boolean = true): string | Object {
+  public serialize(_stringify: boolean = true): string | Object {
     const serialize = {
       stringError: this.stringError,
       errorCode: this.errorCode,
@@ -136,7 +136,7 @@ export default class Errors {
    * If the string is not a serialized error, create a new error with the string as new error infos
    * @param {String} str
    */
-  static deserialize(str: string): Object {
+  public static deserialize(str: string): Object {
     const obj = convertStringToJSON(str);
 
     const constructError = (ptr) => {
@@ -160,7 +160,7 @@ export default class Errors {
   /**
    * The default codes of the Error class
    */
-  static get DEFAULT_CODES(): Object {
+  public static get DEFAULT_CODES(): Object {
     return {
       // Special error that say we just want to add some extra stack trace data (but without using new error code)
       ESTACKTRACE: 'Stack Trace',
@@ -176,7 +176,7 @@ export default class Errors {
   /**
    * Declare codes to the Errors class
    */
-  static declareCodes(conf: Object): void {
+  public static declareCodes(conf: Object): void {
     if (!codesStorage) {
       codesStorage = Errors.DEFAULT_CODES;
     }
@@ -190,7 +190,7 @@ export default class Errors {
   /**
    * Returns the known codes
    */
-  static get codes(): Object {
+  public static get codes(): Object {
     if (!codesStorage) {
       codesStorage = Errors.DEFAULT_CODES;
     }
@@ -201,14 +201,14 @@ export default class Errors {
   /**
    * Shortcut to handle an add to stack trace (special add --> ESTACKTRACE type)
    */
-  static shortcutStackTraceSpecial(err: Errors | Error, funcName: string): Errors {
+  public static shortcutStackTraceSpecial(err: Errors | Error, funcName: string): Errors {
     return Errors.handleStackTraceAdd(err, new Errors('ESTACKTRACE', '', funcName), funcName);
   }
 
   /**
    * Add an error into a stack trace, handle the fact of unexpected errors
    */
-  static handleStackTraceAdd(err: Errors | Error, errToAdd: Errors, funcName: string = Errors.getFunctionName(NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_HANDLE_STACK_TRACE)) {
+  public static handleStackTraceAdd(err: Errors | Error, errToAdd: Errors, funcName: string = Errors.getFunctionName(NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_HANDLE_STACK_TRACE)) {
     if (!Errors.staticIsAnError(err)) {
       return new Errors('EUNEXPECTED', String(err.stack || err), funcName);
     }
@@ -219,7 +219,7 @@ export default class Errors {
   /**
    * Check if the errCode is a part of the stackTrace errors
    */
-  checkErrorOccur(errCode: string): boolean {
+  public checkErrorOccur(errCode: string): boolean {
     if (this.errorCode === errCode) return true;
 
     if (!this.dad) return false;
@@ -231,14 +231,14 @@ export default class Errors {
    * Get the description associated to the recorded error
    * @return {string}
    */
-  getMeaning(): string {
+  public getMeaning(): string {
     return Errors.codes[this.errorCode] || '';
   }
 
   /**
    * @override
    */
-  toString(): string {
+  public toString(): string {
     return this.getErrorString();
   }
 
@@ -247,7 +247,7 @@ export default class Errors {
    * @param {?Boolean} _dad
    * @return {string}
    */
-  getErrorString(_dad: boolean = false): string {
+  public getErrorString(_dad: boolean = false): string {
     const json: any = {};
 
     let avoid = true;
@@ -276,14 +276,14 @@ export default class Errors {
   /**
    * Display the colored error
    */
-  displayColoredError(): void {
+  public displayColoredError(): void {
     console.error(this.getColoredErrorString(true));
   }
 
   /**
    * Display the recorded error
    */
-  displayError(): void {
+  public displayError(): void {
     console.error(colors.bold(colors.red(String(this.getErrorString()))));
   }
 
@@ -291,7 +291,7 @@ export default class Errors {
    * display the error into the console
    * WARNING THIS FUNCTION IS RECURSIVE
    */
-  getColoredErrorString(isFirst: boolean = true): any {
+  public getColoredErrorString(isFirst: boolean = true): any {
     const strsParts: string[] = [];
     let dadsDisplay: any[] = [];
 
@@ -368,28 +368,28 @@ export default class Errors {
   /**
    * Say if the parameter is an instance of the class Error
    */
-  static staticIsAnError(unknown: any): unknown is Errors {
+  public static staticIsAnError(unknown: any): unknown is Errors {
     return unknown instanceof Errors;
   }
 
   /**
    * Set a string to specify more the error
    */
-  setString(error: string): void {
+  public setString(error: string): void {
     this.stringError = error;
   }
 
   /**
    * Set the error code
    */
-  setErrorCode(errCode: string): void {
+  public setErrorCode(errCode: string): void {
     this.errorCode = errCode;
   }
 
   /**
    * Get the string associated to the last code in stack
    */
-  getLastStringInStack(): string {
+  public getLastStringInStack(): string {
     let ptr: Errors = this;
 
     while (ptr.dad) ptr = ptr.dad;
@@ -402,7 +402,7 @@ export default class Errors {
    * The last in the stack
    * @return {String}
    */
-  getLastErrorCodeInStack(): string {
+  public getLastErrorCodeInStack(): string {
     let ptr: Errors = this;
 
     while (ptr.dad) ptr = ptr.dad;
@@ -415,7 +415,7 @@ export default class Errors {
    * The last in the stack
    * @return {String}
    */
-  getLastErrorInStack(): Errors {
+  public getLastErrorInStack(): Errors {
     let ptr: Errors = this;
 
     while (ptr.dad) ptr = ptr.dad;
@@ -427,7 +427,7 @@ export default class Errors {
    * Get the error code (key that refer to the error)
    * @return {String}
    */
-  getErrorCode(): string {
+  public getErrorCode(): string {
     return this.errorCode;
   }
 }
