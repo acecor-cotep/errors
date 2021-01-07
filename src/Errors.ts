@@ -18,7 +18,6 @@ function monoline(parts: any[]): string {
 /**
  * Convert a string to JSON
  * If he cannot parse it, return false
- * @param {String} dataString
  */
 function convertStringToJSON(dataString: string): Object | false {
   return (() => {
@@ -34,10 +33,9 @@ const NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_CLASSIC: number = 3;
 
 const NUMBER_OF_LEVEL_TO_GO_BACK_ERROR_HANDLE_STACK_TRACE: number = 3;
 
-/**
- * Holds the errors codes
- */
-let codesStorage: Object | false = false;
+let codesStorage: {
+  [key: string]: string;
+} | false = false;
 
 /**
  * Handles errors in application. It contains Error codes and functions to manage them
@@ -64,10 +62,14 @@ export default class Errors {
     if (errCode) {
       this.errorCode = errCode;
 
-      if (functionName) this.happened = functionName;
+      if (functionName) {
+        this.happened = functionName;
+      }
     }
 
-    if (supString) this.stringError = supString;
+    if (supString) {
+      this.stringError = supString;
+    }
 
     this.dad = false;
   }
@@ -91,7 +93,9 @@ export default class Errors {
       .trim();
 
     // If we cannot succeed to find the good function name, return the whole data
-    if (!trimmed.length) return err.stack || '';
+    if (!trimmed.length) {
+      return err.stack || '';
+    }
 
     return trimmed.split(' ')[1];
   }
@@ -146,13 +150,17 @@ export default class Errors {
       newErrorObj.errorCode = ptr.errorCode || 'EUNEXPECTED';
       newErrorObj.happened = ptr.happened || '';
 
-      if (ptr.dad) newErrorObj.dad = constructError(ptr.dad);
+      if (ptr.dad) {
+        newErrorObj.dad = constructError(ptr.dad);
+      }
 
       return newErrorObj;
     };
 
     // If the str is not an Errors serialized data
-    if (!obj) return new Errors('UNKNOWN_ERROR', str);
+    if (!obj) {
+      return new Errors('UNKNOWN_ERROR', str);
+    }
 
     return constructError(obj);
   }
@@ -160,7 +168,9 @@ export default class Errors {
   /**
    * The default codes of the Error class
    */
-  public static get DEFAULT_CODES(): Object {
+  public static get DEFAULT_CODES(): {
+    [key: string]: string;
+  } {
     return {
       // Special error that say we just want to add some extra stack trace data (but without using new error code)
       ESTACKTRACE: 'Stack Trace',
@@ -176,7 +186,9 @@ export default class Errors {
   /**
    * Declare codes to the Errors class
    */
-  public static declareCodes(conf: Object): void {
+  public static declareCodes(conf: {
+    [key: string]: string;
+  }): void {
     if (!codesStorage) {
       codesStorage = Errors.DEFAULT_CODES;
     }
@@ -190,7 +202,9 @@ export default class Errors {
   /**
    * Returns the known codes
    */
-  public static get codes(): Object {
+  public static get codes(): {
+    [key: string]: string;
+  } {
     if (!codesStorage) {
       codesStorage = Errors.DEFAULT_CODES;
     }
@@ -220,17 +234,17 @@ export default class Errors {
    * Check if the errCode is a part of the stackTrace errors
    */
   public checkErrorOccur(errCode: string): boolean {
-    if (this.errorCode === errCode) return true;
+    if (this.errorCode === errCode) {
+      return true;
+    }
 
-    if (!this.dad) return false;
+    if (!this.dad) {
+      return false;
+    }
 
     return this.dad.checkErrorOccur(errCode);
   }
 
-  /**
-   * Get the description associated to the recorded error
-   * @return {string}
-   */
   public getMeaning(): string {
     return Errors.codes[this.errorCode] || '';
   }
@@ -244,8 +258,6 @@ export default class Errors {
 
   /**
    * Get the string that correspond to the recorded error (its a stringified json)
-   * @param {?Boolean} _dad
-   * @return {string}
    */
   public getErrorString(_dad: boolean = false): string {
     const json: any = {};
@@ -257,32 +269,38 @@ export default class Errors {
       json.errorCode = this.errorCode;
       json.errorMeaning = this.getMeaning();
 
-      if (this.stringError) json.moreInfos = this.stringError;
+      if (this.stringError) {
+        json.moreInfos = this.stringError;
+      }
 
-      if (this.happened) json.happenedAt = this.happened;
+      if (this.happened) {
+        json.happenedAt = this.happened;
+      }
     }
 
-    if (this.dad) json.dad = this.dad.getErrorString(true);
+    if (this.dad) {
+      json.dad = this.dad.getErrorString(true);
+    }
 
-    if (_dad && avoid) return json.dad;
+    if (_dad && avoid) {
+      return json.dad;
+    }
 
-    if (_dad) return json;
+    if (_dad) {
+      return json;
+    }
 
-    if (avoid) return JSON.stringify(json.dad);
+    if (avoid) {
+      return JSON.stringify(json.dad);
+    }
 
     return JSON.stringify(json);
   }
 
-  /**
-   * Display the colored error
-   */
   public displayColoredError(): void {
     console.error(this.getColoredErrorString(true));
   }
 
-  /**
-   * Display the recorded error
-   */
   public displayError(): void {
     console.error(colors.bold(colors.red(String(this.getErrorString()))));
   }
@@ -312,9 +330,13 @@ export default class Errors {
       ]));
     }
 
-    if (this.stringError) colors.blue(strsParts.push(`More infos: [${this.stringError}]\n`));
+    if (this.stringError) {
+      colors.blue(strsParts.push(`More infos: [${this.stringError}]\n`));
+    }
 
-    if (this.happened) colors.grey(strsParts.push(`Happened at: [${this.happened}]\n`));
+    if (this.happened) {
+      colors.grey(strsParts.push(`Happened at: [${this.happened}]\n`));
+    }
 
     // If we are the first called function, it means we have to actually handle the display
     if (isFirst) {
@@ -365,9 +387,6 @@ export default class Errors {
     return toRet;
   }
 
-  /**
-   * Say if the parameter is an instance of the class Error
-   */
   public static staticIsAnError(unknown: any): unknown is Errors {
     return unknown instanceof Errors;
   }
@@ -379,20 +398,16 @@ export default class Errors {
     this.stringError = error;
   }
 
-  /**
-   * Set the error code
-   */
   public setErrorCode(errCode: string): void {
     this.errorCode = errCode;
   }
 
-  /**
-   * Get the string associated to the last code in stack
-   */
   public getLastStringInStack(): string {
     let ptr: Errors = this;
 
-    while (ptr.dad) ptr = ptr.dad;
+    while (ptr.dad) {
+      ptr = ptr.dad;
+    }
 
     return ptr.stringError;
   }
@@ -400,33 +415,27 @@ export default class Errors {
   /**
    * Get the error code (key that refer to the error)
    * The last in the stack
-   * @return {String}
    */
   public getLastErrorCodeInStack(): string {
     let ptr: Errors = this;
 
-    while (ptr.dad) ptr = ptr.dad;
+    while (ptr.dad) {
+      ptr = ptr.dad;
+    }
 
     return ptr.errorCode;
   }
 
-  /**
-   * Get the error
-   * The last in the stack
-   * @return {String}
-   */
   public getLastErrorInStack(): Errors {
     let ptr: Errors = this;
 
-    while (ptr.dad) ptr = ptr.dad;
+    while (ptr.dad) {
+      ptr = ptr.dad;
+    }
 
     return ptr;
   }
 
-  /**
-   * Get the error code (key that refer to the error)
-   * @return {String}
-   */
   public getErrorCode(): string {
     return this.errorCode;
   }

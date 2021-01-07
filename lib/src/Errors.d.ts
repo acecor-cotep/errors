@@ -43,15 +43,21 @@ export default class Errors {
     /**
      * The default codes of the Error class
      */
-    static readonly DEFAULT_CODES: Object;
+    static get DEFAULT_CODES(): {
+        [key: string]: string;
+    };
     /**
      * Declare codes to the Errors class
      */
-    static declareCodes(conf: Object): void;
+    static declareCodes(conf: {
+        [key: string]: string;
+    }): void;
     /**
      * Returns the known codes
      */
-    static readonly codes: Object;
+    static get codes(): {
+        [key: string]: string;
+    };
     /**
      * Shortcut to handle an add to stack trace (special add --> ESTACKTRACE type)
      */
@@ -64,10 +70,6 @@ export default class Errors {
      * Check if the errCode is a part of the stackTrace errors
      */
     checkErrorOccur(errCode: string): boolean;
-    /**
-     * Get the description associated to the recorded error
-     * @return {string}
-     */
     getMeaning(): string;
     /**
      * @override
@@ -75,54 +77,27 @@ export default class Errors {
     toString(): string;
     /**
      * Get the string that correspond to the recorded error (its a stringified json)
-     * @param {?Boolean} _dad
-     * @return {string}
      */
     getErrorString(_dad?: boolean): string;
-    /**
-     * Display the colored error
-     */
     displayColoredError(): void;
-    /**
-     * Display the recorded error
-     */
     displayError(): void;
     /**
      * display the error into the console
      * WARNING THIS FUNCTION IS RECURSIVE
      */
     getColoredErrorString(isFirst?: boolean): any;
-    /**
-     * Say if the parameter is an instance of the class Error
-     */
     static staticIsAnError(unknown: any): unknown is Errors;
     /**
      * Set a string to specify more the error
      */
     setString(error: string): void;
-    /**
-     * Set the error code
-     */
     setErrorCode(errCode: string): void;
-    /**
-     * Get the string associated to the last code in stack
-     */
     getLastStringInStack(): string;
     /**
      * Get the error code (key that refer to the error)
      * The last in the stack
-     * @return {String}
      */
     getLastErrorCodeInStack(): string;
-    /**
-     * Get the error
-     * The last in the stack
-     * @return {String}
-     */
     getLastErrorInStack(): Errors;
-    /**
-     * Get the error code (key that refer to the error)
-     * @return {String}
-     */
     getErrorCode(): string;
 }
